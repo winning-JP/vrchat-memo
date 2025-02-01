@@ -2,7 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ["api.vrchat.cloud"],
+    domains: ["api.vrchat.cloud", "files.vrchat.cloud"],
   },
 };
 
