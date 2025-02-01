@@ -32,12 +32,15 @@ export async function GET(_request: Request) {
     where: { email: session.user.email },
   });
   if (!user) {
-    return NextResponse.json({ error: "ユーザーが見つかりません" }, { status: 404 });
+    return NextResponse.json(
+      { error: "ユーザーが見つかりません" },
+      { status: 404 }
+    );
   }
   const worlds = await prisma.world.findMany({
     where: { userId: user.id },
     orderBy: { id: "desc" },
-    include: { tags: true } // 追加: tags を含める
+    include: { tags: true },
   });
   return NextResponse.json(worlds);
 }

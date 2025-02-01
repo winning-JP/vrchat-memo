@@ -55,7 +55,7 @@ export default function Home() {
   const [selectedFilterTags, setSelectedFilterTags] = useState<string[]>([]);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [showSearchModal, setShowSearchModal] = useState(false);
-  const [showAddWorldModal, setShowAddWorldModal] = useState(false); // 追加: モーダル表示用
+  const [showAddWorldModal, setShowAddWorldModal] = useState(false);
 
   const filteredAndSortedWorlds = useMemo(() => {
     if (!worlds) return [];

@@ -92,12 +92,14 @@ export default function WorldCard({
                 onChange={(tags) => onEditChange("tags", tags)}
               />
             </div>
-            <button className="btn btn-success mr-2" onClick={onSave}>
-              保存
-            </button>
-            <button className="btn btn-secondary" onClick={onCancel}>
-              キャンセル
-            </button>
+            <div className="d-flex gap-3 mb-3">
+              <button className="btn btn-success mr-2" onClick={onSave}>
+                保存
+              </button>
+              <button className="btn btn-secondary" onClick={onCancel}>
+                キャンセル
+              </button>
+            </div>
           </div>
         ) : (
           <div>
