@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE `World` ADD COLUMN `memo` VARCHAR(191) NULL;
