@@ -18,7 +18,7 @@ export async function POST(request: Request) {
       );
     }
     const worldId = match[0];
-    const apiUrl = `https://vrchat.com/api/1/worlds/${worldId}`;
+    const apiUrl = `https://winning.moe/api/vrchat/data/?id=${worldId}`;
 
     const res = await fetch(apiUrl, {
       headers: {
