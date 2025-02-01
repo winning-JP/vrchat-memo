@@ -28,7 +28,19 @@ export default function RootLayout({
                 color: #ffffff;
                 background-color: #666;
             }
-        `}
+
+            /* スマホ用のスタイル */
+            @media (max-width: 768px) {
+                .form-control {
+                    font-size: 16px;  /* スマホ用にフォントサイズを大きく */
+                    padding: 12px;   /* タップしやすくするための余白調整 */
+                }
+                img.og-image {
+                  max-width: -webkit-fill-available;
+                  max-height: min-content;
+                }
+              }
+          `}
         </style>
       </head>
       <body>

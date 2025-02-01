@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
 
 async function fetchWorldData(worldId: string) {
-  const apiUrl = `https://vrchat.com/api/1/worlds/${worldId}`;
+  const apiUrl = `https://winning.moe/api/vrchat/data/?id=${worldId}`;
   const res = await fetch(apiUrl, {
     headers: {
       "User-Agent":
