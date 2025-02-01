@@ -52,15 +52,18 @@ export default function Home() {
   const [editing, setEditing] = useState<{ [id: number]: Partial<NewWorld> }>(
     {}
   );
-  const [selectedFilterTag, setSelectedFilterTag] = useState<string>("All");
+  const [selectedFilterTags, setSelectedFilterTags] = useState<string[]>([]);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [showNewWorldForm, setShowNewWorldForm] = useState(false);
+  const [showSearchModal, setShowSearchModal] = useState(false);
+  const [showAddWorldModal, setShowAddWorldModal] = useState(false); // 追加: モーダル表示用
 
   const filteredAndSortedWorlds = useMemo(() => {
     if (!worlds) return [];
     let filtered = worlds;
-    if (selectedFilterTag !== "All") {
+    if (selectedFilterTags.length) {
       filtered = filtered.filter((world) =>
-        world.tags.some((tag) => tag.name === selectedFilterTag)
+        world.tags.some((tag) => selectedFilterTags.includes(tag.name))
       );
     }
     filtered.sort((a, b) =>
@@ -69,7 +72,7 @@ export default function Home() {
         : b.name.localeCompare(a.name)
     );
     return filtered;
-  }, [worlds, selectedFilterTag, sortOrder]);
+  }, [worlds, selectedFilterTags, sortOrder]);
 
   const handleCreate = async () => {
     const res = await fetch("/api/worlds", {
@@ -130,6 +133,7 @@ export default function Home() {
         description:
           prev.description.trim() !== "" ? prev.description : data.description,
         ogImage: prev.ogImage.trim() !== "" ? prev.ogImage : data.imageUrl,
+        tags: prev.tags.length > 0 ? prev.tags : data.tags || [],
       }));
     }
   };
@@ -153,111 +157,236 @@ export default function Home() {
           <button className="btn btn-secondary mb-4" onClick={() => signOut()}>
             サインアウト
           </button>
-
-          <section className="mb-5">
-            <h2>新規ワールド作成</h2>
-            <div className="mb-3">
-              <label className="form-label">ワールドURL</label>
-              <input
-                type="text"
-                className="form-control"
-                placeholder="ワールドのURLを入力してください （https://vrchat.com/home/world/wrld_12345abc）"
-                value={newWorld.url}
-                onChange={(e) =>
-                  setNewWorld({ ...newWorld, url: e.target.value })
-                }
-              />
+          <div className="mb-4">
+            <div className="d-flex gap-3 mb-3">
+              <button
+                className="btn btn-primary"
+                onClick={() => setShowAddWorldModal(true)}
+              >
+                ワールドを追加
+              </button>
+              <button
+                className="btn btn-info"
+                onClick={() => setShowSearchModal(true)}
+              >
+                検索
+              </button>
             </div>
-            <button
-              className="btn btn-info mb-3"
-              onClick={handleFetchMetaForNew}
+          </div>
+          {showAddWorldModal && (
+            <div
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                backdropFilter: "blur(8px)",
+                backgroundColor: "rgba(0, 0, 0, 0.5)",
+                zIndex: 1050,
+              }}
             >
-              情報取得
-            </button>
-            <div className="mb-3">
-              <label className="form-label">
-                ワールド名（自動取得または手動入力）
-              </label>
-              <input
-                type="text"
-                className="form-control"
-                placeholder="ワールド名（【情報取得】ボタンで自動入力されます）"
-                value={newWorld.name}
-                onChange={(e) =>
-                  setNewWorld({ ...newWorld, name: e.target.value })
-                }
-              />
+              <div className="modal d-block" tabIndex={-1}>
+                <div className="modal-dialog">
+                  <div className="modal-content">
+                    <div className="modal-header">
+                      <h5 className="modal-title">新規ワールド追加</h5>
+                      <button
+                        type="button"
+                        className="btn-close"
+                        onClick={() => setShowAddWorldModal(false)}
+                      ></button>
+                    </div>
+                    <div className="modal-body">
+                      <div className="mb-3">
+                        <label className="form-label">ワールドURL</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          placeholder="ワールドのURLを入力してください （https://vrchat.com/home/world/wrld_12345abc）"
+                          value={newWorld.url}
+                          onChange={(e) =>
+                            setNewWorld({ ...newWorld, url: e.target.value })
+                          }
+                        />
+                      </div>
+                      <button
+                        className="btn btn-info mb-3"
+                        onClick={handleFetchMetaForNew}
+                      >
+                        情報取得
+                      </button>
+                      <div className="mb-3">
+                        <label className="form-label">
+                          ワールド名（自動取得または手動入力）
+                        </label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          placeholder="ワールド名（【情報取得】ボタンで自動入力されます）"
+                          value={newWorld.name}
+                          onChange={(e) =>
+                            setNewWorld({ ...newWorld, name: e.target.value })
+                          }
+                        />
+                      </div>
+                      <div className="mb-3">
+                        <label className="form-label">
+                          説明（自動取得または手動入力）
+                        </label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          placeholder="説明（【情報取得】ボタンで自動入力されます）"
+                          value={newWorld.description}
+                          onChange={(e) =>
+                            setNewWorld({
+                              ...newWorld,
+                              description: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div className="mb-3">
+                        <label className="form-label">メモ</label>
+                        <textarea
+                          className="form-control"
+                          rows={3}
+                          value={newWorld.memo}
+                          onChange={(e) =>
+                            setNewWorld({ ...newWorld, memo: e.target.value })
+                          }
+                        ></textarea>
+                      </div>
+                      <div className="mb-3">
+                        <label className="form-label">タグ</label>
+                        <TagInput
+                          tags={newWorld.tags}
+                          onChange={(tags) =>
+                            setNewWorld({ ...newWorld, tags: tags })
+                          }
+                        />
+                      </div>
+                    </div>
+                    <div className="modal-footer">
+                      <button
+                        className="btn btn-primary"
+                        onClick={() => {
+                          handleCreate();
+                          setShowAddWorldModal(false);
+                        }}
+                      >
+                        ワールドを追加
+                      </button>
+                      <button
+                        className="btn btn-secondary"
+                        onClick={() => setShowAddWorldModal(false)}
+                      >
+                        キャンセル
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="mb-3">
-              <label className="form-label">
-                説明（自動取得または手動入力）
-              </label>
-              <input
-                type="text"
-                className="form-control"
-                placeholder="説明（【情報取得】ボタンで自動入力されます）"
-                value={newWorld.description}
-                onChange={(e) =>
-                  setNewWorld({ ...newWorld, description: e.target.value })
-                }
-              />
-            </div>
-            <div className="mb-3">
-              <label className="form-label">メモ</label>
-              <textarea
-                className="form-control"
-                rows={3}
-                value={newWorld.memo}
-                onChange={(e) =>
-                  setNewWorld({ ...newWorld, memo: e.target.value })
-                }
-              ></textarea>
-            </div>
-            <div className="mb-3">
-              <label className="form-label">タグ</label>
-              <TagInput
-                tags={newWorld.tags}
-                onChange={(tags) => setNewWorld({ ...newWorld, tags: tags })}
-              />
-            </div>
-            <button className="btn btn-primary" onClick={handleCreate}>
-              ワールドを追加
-            </button>
-          </section>
+          )}
 
+          {showSearchModal && (
+            <div
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                backdropFilter: "blur(8px)",
+                backgroundColor: "rgba(0, 0, 0, 0.5)",
+                zIndex: 1050,
+              }}
+            >
+              <div className="modal d-block" tabIndex={-1}>
+                <div className="modal-dialog">
+                  <div className="modal-content">
+                    <div className="modal-header">
+                      <h5 className="modal-title">ワールド検索</h5>
+                      <button
+                        type="button"
+                        className="btn-close"
+                        onClick={() => setShowSearchModal(false)}
+                      ></button>
+                    </div>
+                    <div className="modal-body">
+                      <div className="mb-3">
+                        <label className="form-label">タグで絞り込み</label>
+                        <div>
+                          {allTags &&
+                            allTags.map((tag) => (
+                              <div
+                                key={tag.id}
+                                className="form-check form-check-inline"
+                              >
+                                <input
+                                  type="checkbox"
+                                  className="form-check-input"
+                                  id={`modal-filter-${tag.id}`}
+                                  value={tag.name}
+                                  checked={selectedFilterTags.includes(
+                                    tag.name
+                                  )}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setSelectedFilterTags([
+                                        ...selectedFilterTags,
+                                        tag.name,
+                                      ]);
+                                    } else {
+                                      setSelectedFilterTags(
+                                        selectedFilterTags.filter(
+                                          (t) => t !== tag.name
+                                        )
+                                      );
+                                    }
+                                  }}
+                                />
+                                <label
+                                  className="form-check-label"
+                                  htmlFor={`modal-filter-${tag.id}`}
+                                >
+                                  {tag.name}
+                                </label>
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                      <div className="mb-3">
+                        <label className="form-label">名前順でソート</label>
+                        <select
+                          className="form-select"
+                          value={sortOrder}
+                          onChange={(e) =>
+                            setSortOrder(e.target.value as "asc" | "desc")
+                          }
+                        >
+                          <option value="asc">A - Z</option>
+                          <option value="desc">Z - A</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="modal-footer">
+                      <button
+                        className="btn btn-secondary"
+                        onClick={() => setShowSearchModal(false)}
+                      >
+                        閉じる
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           <section className="mb-4">
             <h2>登録済みワールド</h2>
-            <div className="row mb-3">
-              <div className="col-md-6">
-                <label className="form-label">タグで絞り込み</label>
-                <select
-                  className="form-select"
-                  value={selectedFilterTag}
-                  onChange={(e) => setSelectedFilterTag(e.target.value)}
-                >
-                  <option value="All">すべて</option>
-                  {allTags &&
-                    allTags.map((tag) => (
-                      <option key={tag.id} value={tag.name}>
-                        {tag.name}
-                      </option>
-                    ))}
-                </select>
-              </div>
-              <div className="col-md-6">
-                <label className="form-label">名前順でソート</label>
-                <select
-                  className="form-select"
-                  value={sortOrder}
-                  onChange={(e) =>
-                    setSortOrder(e.target.value as "asc" | "desc")
-                  }
-                >
-                  <option value="asc">A - Z</option>
-                  <option value="desc">Z - A</option>
-                </select>
-              </div>
-            </div>
             {worlds && worlds.length > 0 ? (
               filteredAndSortedWorlds.map((world) => (
                 <WorldCard
@@ -267,6 +396,7 @@ export default function Home() {
                   editData={{
                     name: editing[world.id]?.name || "",
                     url: editing[world.id]?.url || "",
+                    description: editing[world.id]?.description || "",
                     memo: editing[world.id]?.memo || "",
                     ogImage: editing[world.id]?.ogImage || "",
                     tags: editing[world.id]?.tags || [],

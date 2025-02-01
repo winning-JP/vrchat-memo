@@ -4,7 +4,7 @@ import Image from "next/image";
 import TagInput from "./TagInput";
 
 export type OnEditChangeType = (
-  field: "start" | "name" | "url" | "memo" | "tags",
+  field: "start" | "name" | "url" | "description" | "memo" | "tags",
   value: string | number | string[]
 ) => void;
 
@@ -24,6 +24,7 @@ interface WorldCardProps {
   editData: {
     name: string;
     url: string;
+    description: string;
     memo: string;
     ogImage: string;
     tags: string[];
@@ -64,6 +65,15 @@ export default function WorldCard({
                 className="form-control"
                 value={editData.url}
                 onChange={(e) => onEditChange("url", e.target.value)}
+              />
+            </div>
+            <div className="mb-3">
+              <label className="form-label">説明</label>
+              <input
+                type="text"
+                className="form-control"
+                value={editData.description}
+                onChange={(e) => onEditChange("description", e.target.value)}
               />
             </div>
             <div className="mb-3">
@@ -113,9 +123,13 @@ export default function WorldCard({
             {world.description && (
               <p className="card-text">説明: {world.description}</p>
             )}
-            {world.memo && <p className="card-text">メモ: {world.memo}</p>}
+            {world.memo && (
+              <p className="card-text" style={{ whiteSpace: "pre-wrap" }}>
+                メモ: {world.memo}
+              </p>
+            )}
             {world.tags.length > 0 && (
-              <div>
+              <div className="d-flex gap mb-3">
                 {world.tags.map((tag) => (
                   <span key={tag.id} className="badge bg-secondary me-1">
                     {tag.name}
@@ -123,7 +137,7 @@ export default function WorldCard({
                 ))}
               </div>
             )}
-            <div className="mt-3">
+            <div className="d-flex gap-3 mb-3">
               <button
                 className="btn btn-warning mr-2"
                 onClick={() => onEditChange("start", Number(world.id))}

@@ -22,15 +22,21 @@ async function fetchWorldData(worldId: string) {
   };
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
-  if (!session || !session.user?.email) {
-    return NextResponse.json({ error: "認証されていません" }, { status: 401 });
+  if (!session || !session.user || !session.user.email) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+  });
+  if (!user) {
+    return NextResponse.json({ error: "ユーザーが見つかりません" }, { status: 404 });
   }
   const worlds = await prisma.world.findMany({
-    where: { user: { email: session.user.email } },
-    include: { tags: true },
-    orderBy: { name: "asc" },
+    where: { userId: user.id },
+    orderBy: { id: "desc" },
+    include: { tags: true } // 追加: tags を含める
   });
   return NextResponse.json(worlds);
 }

@@ -37,6 +37,7 @@ export async function POST(request: Request) {
       name: data.name || "",
       description: data.description || "",
       imageUrl: data.imageUrl || data.thumbnailImageUrl || "",
+      tags: data.tags || []
     };
     return NextResponse.json(meta);
   } catch (error) {
