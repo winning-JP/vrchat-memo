@@ -20,12 +20,7 @@ export async function POST(request: Request) {
     const worldId = match[0];
     const apiUrl = `https://vrchat.com/api/1/worlds/${worldId}`;
 
-    const res = await fetch(apiUrl, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36 Edg/132.0.0.",
-      },
-    });
+    const res = await fetch(apiUrl, {});
     if (!res.ok) {
       return NextResponse.json(
         { error: "ワールド情報の取得に失敗しました", status_code: res.status },
