@@ -3,7 +3,7 @@
 import TagInput from "./TagInput";
 
 export type OnEditChangeType = (
-  field: "start" | "name" | "url" | "memo" | "ogImage" | "tags",
+  field: "start" | "name" | "url" | "memo" | "tags",
   value: string | number | string[]
 ) => void;
 
@@ -13,6 +13,7 @@ interface World {
   url: string;
   memo?: string;
   ogImage?: string;
+  description?: string;
   tags: { id: number; name: string }[];
 }
 
@@ -47,7 +48,7 @@ export default function WorldCard({
         {isEditing && editData ? (
           <div>
             <div className="mb-3">
-              <label className="form-label">World Name</label>
+              <label className="form-label">ワールド名</label>
               <input
                 type="text"
                 className="form-control"
@@ -56,7 +57,7 @@ export default function WorldCard({
               />
             </div>
             <div className="mb-3">
-              <label className="form-label">World URL</label>
+              <label className="form-label">ワールドURL</label>
               <input
                 type="text"
                 className="form-control"
@@ -65,7 +66,7 @@ export default function WorldCard({
               />
             </div>
             <div className="mb-3">
-              <label className="form-label">Memo</label>
+              <label className="form-label">メモ</label>
               <textarea
                 className="form-control"
                 rows={3}
@@ -74,26 +75,17 @@ export default function WorldCard({
               ></textarea>
             </div>
             <div className="mb-3">
-              <label className="form-label">OG Image URL</label>
-              <input
-                type="text"
-                className="form-control"
-                value={editData.ogImage}
-                onChange={(e) => onEditChange("ogImage", e.target.value)}
-              />
-            </div>
-            <div className="mb-3">
-              <label className="form-label">Tags</label>
+              <label className="form-label">タグ</label>
               <TagInput
                 tags={editData.tags}
                 onChange={(tags) => onEditChange("tags", tags)}
               />
             </div>
             <button className="btn btn-success me-2" onClick={onSave}>
-              Save
+              保存
             </button>
             <button className="btn btn-secondary" onClick={onCancel}>
-              Cancel
+              キャンセル
             </button>
           </div>
         ) : (
@@ -109,14 +101,15 @@ export default function WorldCard({
               <div className="mb-3">
                 <img
                   src={world.ogImage}
-                  alt="OG Image"
+                  alt="OG画像"
                   style={{ maxWidth: "100%", height: "auto" }}
                 />
               </div>
             )}
-            {world.memo && (
-              <p className="card-text">Memo: {world.memo}</p>
+            {world.description && (
+              <p className="card-text">説明: {world.description}</p>
             )}
+            {world.memo && <p className="card-text">メモ: {world.memo}</p>}
             {world.tags && world.tags.length > 0 && (
               <div>
                 {world.tags.map((tag) => (
@@ -131,10 +124,10 @@ export default function WorldCard({
                 className="btn btn-warning me-2"
                 onClick={() => onEditChange("start", world.id)}
               >
-                Edit
+                編集
               </button>
               <button className="btn btn-danger" onClick={onDelete}>
-                Delete
+                削除
               </button>
             </div>
           </div>

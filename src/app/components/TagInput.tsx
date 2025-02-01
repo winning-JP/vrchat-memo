@@ -38,7 +38,7 @@ export default function TagInput({ tags, onChange }: TagInputProps) {
             <button
               type="button"
               className="btn-close btn-close-white btn-sm"
-              aria-label="Remove"
+              aria-label="削除"
               onClick={() => removeTag(tag)}
             ></button>
           </span>
@@ -47,7 +47,7 @@ export default function TagInput({ tags, onChange }: TagInputProps) {
       <input
         type="text"
         className="form-control"
-        placeholder="Add tag and press Enter"
+        placeholder="タグを入力し、Enterキーを押してください"
         value={input}
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={handleKeyDown}

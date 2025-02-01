@@ -1,5 +1,5 @@
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import prisma from "./prismadb";  // デフォルトインポート（名前付きインポートではありません）
+import prisma from "./prismadb";
 import GitHubProvider from "next-auth/providers/github";
 
 export const authOptions = {

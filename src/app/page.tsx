@@ -3,31 +3,32 @@
 import { signIn, signOut, useSession } from "next-auth/react";
 import useSWR from "swr";
 import { useState, useMemo } from "react";
-import WorldCard from "./components/WorldCard";
+import WorldCard, { OnEditChangeType } from "./components/WorldCard";
 import TagInput from "./components/TagInput";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function Home() {
   const { data: session, status } = useSession();
-  const { data: worlds, mutate } = useSWR(session ? "/api/worlds" : null, fetcher);
+  const { data: worlds, mutate } = useSWR(
+    session ? "/api/worlds" : null,
+    fetcher
+  );
   const { data: allTags } = useSWR("/api/tags", fetcher);
 
-  // 新規登録用の状態
   const [newWorld, setNewWorld] = useState({
     name: "",
     url: "",
+    description: "",
     memo: "",
     ogImage: "",
     tags: [] as string[],
   });
 
-  // 編集状態などはここでは割愛（前回の例と同様）
   const [editing, setEditing] = useState<{ [id: number]: any }>({});
   const [selectedFilterTag, setSelectedFilterTag] = useState<string>("All");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
-  // フィルター＆ソート処理
   const filteredAndSortedWorlds = useMemo(() => {
     if (!worlds) return [];
     let filtered = worlds;
@@ -44,33 +45,6 @@ export default function Home() {
     return filtered;
   }, [worlds, selectedFilterTag, sortOrder]);
 
-  // URLからmeta情報を自動取得する関数
-  const handleFetchMeta = async () => {
-    if (!newWorld.url) return;
-    try {
-      const res = await fetch("/api/fetchMeta", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: newWorld.url }),
-      });
-      if (res.ok) {
-        const meta = await res.json();
-        // 取得した meta 情報で新規ワールドの各フィールドを補完
-        setNewWorld((prev) => ({
-          ...prev,
-          name: meta.name || prev.name,
-          memo: meta.description || prev.memo,
-          ogImage: meta.imageUrl || prev.ogImage,
-        }));
-      } else {
-        console.error("Failed to fetch meta information");
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  // 新規作成処理
   const handleCreate = async () => {
     const res = await fetch("/api/worlds", {
       method: "POST",
@@ -79,11 +53,17 @@ export default function Home() {
     });
     if (res.ok) {
       mutate();
-      setNewWorld({ name: "", url: "", memo: "", ogImage: "", tags: [] });
+      setNewWorld({
+        name: "",
+        url: "",
+        description: "",
+        memo: "",
+        ogImage: "",
+        tags: [],
+      });
     }
   };
 
-  // 編集保存および削除処理は前回の例と同様…
   const handleSaveEdit = async (id: number) => {
     const editData = editing[id];
     const res = await fetch(`/api/worlds/${id}`, {
@@ -108,50 +88,86 @@ export default function Home() {
     }
   };
 
-  // ここではフックの呼び出し順序が変わらないよう、すべてのフックは上部で呼び出しています
+  const createEditChangeHandler = (worldId: number): OnEditChangeType => {
+    return (field, value) => {
+      setEditing((prev) => ({
+        ...prev,
+        [worldId]: {
+          ...prev[worldId],
+          [field]: value,
+        },
+      }));
+    };
+  };
+
+  // 新規作成フォーム用：URLから情報取得ボタンの処理
+  const handleFetchMetaForNew = async () => {
+    if (!newWorld.url) return;
+    const res = await fetch("/api/fetchMeta", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url: newWorld.url }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setNewWorld((prev) => ({
+        ...prev,
+        name: prev.name.trim() !== "" ? prev.name : data.name,
+        description:
+          prev.description.trim() !== "" ? prev.description : data.description,
+        ogImage: prev.ogImage.trim() !== "" ? prev.ogImage : data.imageUrl,
+      }));
+    }
+  };
 
   return (
     <div className="container mt-5">
       {status === "loading" ? (
         <div className="text-center">
-          <h3>Loading...</h3>
+          <h3>読み込み中...</h3>
         </div>
       ) : !session ? (
         <div className="text-center">
-          <h1>VRChat World Memo</h1>
+          <h1>VRChat ワールド備忘録</h1>
           <button className="btn btn-primary" onClick={() => signIn()}>
-            Sign in with GitHub
+            GitHubでサインイン
           </button>
         </div>
       ) : (
         <>
-          <h1 className="mb-4">VRChat World Memo</h1>
+          <h1 className="mb-4">VRChat ワールド備忘録</h1>
           <button className="btn btn-secondary mb-4" onClick={() => signOut()}>
-            Sign Out
+            サインアウト
           </button>
 
-          {/* 新規登録フォーム */}
           <section className="mb-5">
-            <h2>Create New World</h2>
+            <h2>新規ワールド作成</h2>
             <div className="mb-3">
-              <label className="form-label">World URL</label>
+              <label className="form-label">ワールドURL</label>
               <input
                 type="text"
                 className="form-control"
-                placeholder="Enter world URL"
+                placeholder="ワールドのURLを入力してください （https://vrchat.com/home/world/wrld_12345abc）"
                 value={newWorld.url}
                 onChange={(e) =>
                   setNewWorld({ ...newWorld, url: e.target.value })
                 }
-                onBlur={handleFetchMeta}  // URL入力後に自動でmeta取得
               />
             </div>
+            <button
+              className="btn btn-info mb-3"
+              onClick={handleFetchMetaForNew}
+            >
+              情報取得
+            </button>
             <div className="mb-3">
-              <label className="form-label">World Name</label>
+              <label className="form-label">
+                ワールド名（自動取得または手動入力）
+              </label>
               <input
                 type="text"
                 className="form-control"
-                placeholder="World name (auto-filled)"
+                placeholder="ワールド名（【情報取得】ボタンで自動入力されます）"
                 value={newWorld.name}
                 onChange={(e) =>
                   setNewWorld({ ...newWorld, name: e.target.value })
@@ -159,10 +175,23 @@ export default function Home() {
               />
             </div>
             <div className="mb-3">
-              <label className="form-label">Memo</label>
+              <label className="form-label">
+                説明（自動取得または手動入力）
+              </label>
+              <input
+                type="text"
+                className="form-control"
+                placeholder="説明（【情報取得】ボタンで自動入力されます）"
+                value={newWorld.description}
+                onChange={(e) =>
+                  setNewWorld({ ...newWorld, description: e.target.value })
+                }
+              />
+            </div>
+            <div className="mb-3">
+              <label className="form-label">メモ</label>
               <textarea
                 className="form-control"
-                placeholder="Memo (auto-filled)"
                 rows={3}
                 value={newWorld.memo}
                 onChange={(e) =>
@@ -171,41 +200,28 @@ export default function Home() {
               ></textarea>
             </div>
             <div className="mb-3">
-              <label className="form-label">OG Image (auto-filled)</label>
-              {newWorld.ogImage && (
-                <div className="mb-2">
-                  <img
-                    src={newWorld.ogImage}
-                    alt="OG Image"
-                    style={{ maxWidth: "100%", height: "auto" }}
-                  />
-                </div>
-              )}
-            </div>
-            <div className="mb-3">
-              <label className="form-label">Tags</label>
+              <label className="form-label">タグ</label>
               <TagInput
                 tags={newWorld.tags}
                 onChange={(tags) => setNewWorld({ ...newWorld, tags })}
               />
             </div>
             <button className="btn btn-primary" onClick={handleCreate}>
-              Add World
+              ワールドを追加
             </button>
           </section>
 
-          {/* フィルターとソート */}
           <section className="mb-4">
-            <h2>Your Worlds</h2>
+            <h2>登録済みワールド</h2>
             <div className="row mb-3">
               <div className="col-md-6">
-                <label className="form-label">Filter by Tag</label>
+                <label className="form-label">タグで絞り込み</label>
                 <select
                   className="form-select"
                   value={selectedFilterTag}
                   onChange={(e) => setSelectedFilterTag(e.target.value)}
                 >
-                  <option value="All">All</option>
+                  <option value="All">すべて</option>
                   {allTags &&
                     allTags.map((tag: any) => (
                       <option key={tag.id} value={tag.name}>
@@ -215,7 +231,7 @@ export default function Home() {
                 </select>
               </div>
               <div className="col-md-6">
-                <label className="form-label">Sort by Name</label>
+                <label className="form-label">名前順でソート</label>
                 <select
                   className="form-select"
                   value={sortOrder}
@@ -235,7 +251,7 @@ export default function Home() {
                   world={world}
                   isEditing={!!editing[world.id]}
                   editData={editing[world.id] || null}
-                  onEditChange={((field, value) => {
+                  onEditChange={(field, value) => {
                     if (field === "start") {
                       const id = value as number;
                       const targetWorld = worlds.find((w: any) => w.id === id);
@@ -245,6 +261,7 @@ export default function Home() {
                           [id]: {
                             name: targetWorld.name,
                             url: targetWorld.url,
+                            description: targetWorld.description || "",
                             memo: targetWorld.memo || "",
                             ogImage: targetWorld.ogImage || "",
                             tags: targetWorld.tags.map((tag: any) => tag.name),
@@ -260,7 +277,7 @@ export default function Home() {
                         },
                       }));
                     }
-                  }) as (field: "start" | "name" | "url" | "memo" | "ogImage" | "tags", value: string | number | string[]) => void}
+                  }}
                   onSave={() => handleSaveEdit(world.id)}
                   onCancel={() =>
                     setEditing((prev) => {
@@ -273,7 +290,7 @@ export default function Home() {
                 />
               ))
             ) : (
-              <p>No worlds found.</p>
+              <p>ワールドが見つかりません。</p>
             )}
           </section>
         </>
