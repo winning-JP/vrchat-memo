@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import TagInput from "./TagInput";
 
 export type OnEditChangeType = (
@@ -81,7 +82,7 @@ export default function WorldCard({
                 onChange={(tags) => onEditChange("tags", tags)}
               />
             </div>
-            <button className="btn btn-success me-2" onClick={onSave}>
+            <button className="btn btn-success mr-2" onClick={onSave}>
               保存
             </button>
             <button className="btn btn-secondary" onClick={onCancel}>
@@ -99,10 +100,13 @@ export default function WorldCard({
             </p>
             {world.ogImage && (
               <div className="mb-3">
-                <img
+                <Image
                   src={world.ogImage}
-                  alt="OG画像"
-                  style={{ maxWidth: "100%", height: "auto" }}
+                  alt={world.name}
+                  width={480}
+                  height={320}
+                  className="og-image"
+                  unoptimized
                 />
               </div>
             )}
@@ -110,7 +114,7 @@ export default function WorldCard({
               <p className="card-text">説明: {world.description}</p>
             )}
             {world.memo && <p className="card-text">メモ: {world.memo}</p>}
-            {world.tags && world.tags.length > 0 && (
+            {world.tags.length > 0 && (
               <div>
                 {world.tags.map((tag) => (
                   <span key={tag.id} className="badge bg-secondary me-1">
@@ -121,8 +125,8 @@ export default function WorldCard({
             )}
             <div className="mt-3">
               <button
-                className="btn btn-warning me-2"
-                onClick={() => onEditChange("start", world.id)}
+                className="btn btn-warning mr-2"
+                onClick={() => onEditChange("start", Number(world.id))}
               >
                 編集
               </button>

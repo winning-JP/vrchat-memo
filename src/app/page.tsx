@@ -3,29 +3,55 @@
 import { signIn, signOut, useSession } from "next-auth/react";
 import useSWR from "swr";
 import { useState, useMemo } from "react";
-import WorldCard, { OnEditChangeType } from "./components/WorldCard";
+import WorldCard from "./components/WorldCard";
 import TagInput from "./components/TagInput";
+
+interface Tag {
+  id: number;
+  name: string;
+}
+
+export interface World {
+  id: number;
+  name: string;
+  url: string;
+  description?: string;
+  memo?: string;
+  ogImage?: string;
+  tags: Tag[];
+}
+
+interface NewWorld {
+  name: string;
+  url: string;
+  description: string;
+  memo: string;
+  ogImage: string;
+  tags: string[];
+}
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function Home() {
   const { data: session, status } = useSession();
-  const { data: worlds, mutate } = useSWR(
+  const { data: worlds, mutate } = useSWR<World[]>(
     session ? "/api/worlds" : null,
     fetcher
   );
-  const { data: allTags } = useSWR("/api/tags", fetcher);
+  const { data: allTags } = useSWR<Tag[]>("/api/tags", fetcher);
 
-  const [newWorld, setNewWorld] = useState({
+  const [newWorld, setNewWorld] = useState<NewWorld>({
     name: "",
     url: "",
     description: "",
     memo: "",
     ogImage: "",
-    tags: [] as string[],
+    tags: [],
   });
 
-  const [editing, setEditing] = useState<{ [id: number]: any }>({});
+  const [editing, setEditing] = useState<{ [id: number]: Partial<NewWorld> }>(
+    {}
+  );
   const [selectedFilterTag, setSelectedFilterTag] = useState<string>("All");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
@@ -33,11 +59,11 @@ export default function Home() {
     if (!worlds) return [];
     let filtered = worlds;
     if (selectedFilterTag !== "All") {
-      filtered = filtered.filter((world: any) =>
-        world.tags.some((tag: any) => tag.name === selectedFilterTag)
+      filtered = filtered.filter((world) =>
+        world.tags.some((tag) => tag.name === selectedFilterTag)
       );
     }
-    filtered.sort((a: any, b: any) =>
+    filtered.sort((a, b) =>
       sortOrder === "asc"
         ? a.name.localeCompare(b.name)
         : b.name.localeCompare(a.name)
@@ -88,19 +114,7 @@ export default function Home() {
     }
   };
 
-  const createEditChangeHandler = (worldId: number): OnEditChangeType => {
-    return (field, value) => {
-      setEditing((prev) => ({
-        ...prev,
-        [worldId]: {
-          ...prev[worldId],
-          [field]: value,
-        },
-      }));
-    };
-  };
-
-  // 新規作成フォーム用：URLから情報取得ボタンの処理
+  // 新規作成フォーム用
   const handleFetchMetaForNew = async () => {
     if (!newWorld.url) return;
     const res = await fetch("/api/fetchMeta", {
@@ -203,7 +217,7 @@ export default function Home() {
               <label className="form-label">タグ</label>
               <TagInput
                 tags={newWorld.tags}
-                onChange={(tags) => setNewWorld({ ...newWorld, tags })}
+                onChange={(tags) => setNewWorld({ ...newWorld, tags: tags })}
               />
             </div>
             <button className="btn btn-primary" onClick={handleCreate}>
@@ -223,7 +237,7 @@ export default function Home() {
                 >
                   <option value="All">すべて</option>
                   {allTags &&
-                    allTags.map((tag: any) => (
+                    allTags.map((tag) => (
                       <option key={tag.id} value={tag.name}>
                         {tag.name}
                       </option>
@@ -245,16 +259,22 @@ export default function Home() {
               </div>
             </div>
             {worlds && worlds.length > 0 ? (
-              filteredAndSortedWorlds.map((world: any) => (
+              filteredAndSortedWorlds.map((world) => (
                 <WorldCard
                   key={world.id}
                   world={world}
                   isEditing={!!editing[world.id]}
-                  editData={editing[world.id] || null}
+                  editData={{
+                    name: editing[world.id]?.name || "",
+                    url: editing[world.id]?.url || "",
+                    memo: editing[world.id]?.memo || "",
+                    ogImage: editing[world.id]?.ogImage || "",
+                    tags: editing[world.id]?.tags || [],
+                  }}
                   onEditChange={(field, value) => {
                     if (field === "start") {
                       const id = value as number;
-                      const targetWorld = worlds.find((w: any) => w.id === id);
+                      const targetWorld = worlds.find((w) => w.id === id);
                       if (targetWorld) {
                         setEditing((prev) => ({
                           ...prev,
@@ -264,7 +284,7 @@ export default function Home() {
                             description: targetWorld.description || "",
                             memo: targetWorld.memo || "",
                             ogImage: targetWorld.ogImage || "",
-                            tags: targetWorld.tags.map((tag: any) => tag.name),
+                            tags: targetWorld.tags.map((tag) => tag.name),
                           },
                         }));
                       }

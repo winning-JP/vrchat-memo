@@ -24,9 +24,9 @@ async function fetchWorldData(worldId: string) {
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
-  const resolvedParams = await Promise.resolve(params);
+  const resolvedParams = await context.params;
   const worldIdNumeric = parseInt(resolvedParams.id, 10);
   if (isNaN(worldIdNumeric)) {
     return NextResponse.json(
@@ -109,10 +109,11 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
-  const resolvedParams = await Promise.resolve(params);
+  const resolvedParams = await context.params;
   const worldIdNumeric = parseInt(resolvedParams.id, 10);
+
   if (isNaN(worldIdNumeric)) {
     return NextResponse.json(
       { error: "無効なワールドIDです" },
