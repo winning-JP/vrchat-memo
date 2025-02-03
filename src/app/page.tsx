@@ -146,8 +146,9 @@ export default function Home() {
       ) : !session ? (
         <div className="text-center">
           <h1>VRChat ワールド備忘録</h1>
+          <p>サインインしてワールドを管理しよう</p>
           <button className="btn btn-primary" onClick={() => signIn()}>
-            GitHubでサインイン
+            サインインする
           </button>
         </div>
       ) : (
