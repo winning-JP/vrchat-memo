@@ -58,7 +58,10 @@ export async function POST(request: Request) {
     name: inputName,
     description: inputDescription,
     ogImage: inputOgImage,
+    published,
   } = body;
+
+  const isPublished = typeof published === "boolean" ? published : published === "true";
 
   let fetched = null;
   if (url) {
@@ -103,6 +106,7 @@ export async function POST(request: Request) {
       description: finalDescription,
       memo,
       ogImage: finalOgImage,
+      published: isPublished,
       user: { connect: { id: user.id } },
       tags: {
         connectOrCreate: tags.map((tag: string) => ({

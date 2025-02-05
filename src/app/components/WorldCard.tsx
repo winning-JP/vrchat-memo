@@ -4,8 +4,8 @@ import Image from "next/image";
 import TagInput from "./TagInput";
 
 export type OnEditChangeType = (
-  field: "start" | "name" | "url" | "description" | "memo" | "tags",
-  value: string | number | string[]
+  field: "start" | "name" | "url" | "description" | "memo" | "tags" | "published",
+  value: string | number | string[] | boolean
 ) => void;
 
 interface World {
@@ -28,11 +28,13 @@ interface WorldCardProps {
     memo: string;
     ogImage: string;
     tags: string[];
+    published: boolean;
   } | null;
   onEditChange: OnEditChangeType;
   onSave: () => void;
   onCancel: () => void;
   onDelete: () => void;
+  editable?: boolean;
 }
 
 export default function WorldCard({
@@ -43,6 +45,7 @@ export default function WorldCard({
   onSave,
   onCancel,
   onDelete,
+  editable = true,
 }: WorldCardProps) {
   return (
     <div className="card mb-3">
@@ -90,6 +93,17 @@ export default function WorldCard({
               <TagInput
                 tags={editData.tags}
                 onChange={(tags) => onEditChange("tags", tags)}
+              />
+            </div>
+            <div className="mb-3">
+              <label className="form-label">公開する</label>
+              <input
+                type="checkbox"
+                className="form-check-input"
+                checked={editData.published}
+                onChange={(e) =>
+                  onEditChange("published", e.target.checked)
+                }
               />
             </div>
             <div className="d-flex gap-3 mb-3">
@@ -140,15 +154,19 @@ export default function WorldCard({
               </div>
             )}
             <div className="d-flex gap-3 mb-3">
-              <button
-                className="btn btn-warning mr-2"
-                onClick={() => onEditChange("start", Number(world.id))}
-              >
-                編集
-              </button>
-              <button className="btn btn-danger" onClick={onDelete}>
-                削除
-              </button>
+              {editable && (
+                <>
+                  <button
+                    className="btn btn-warning mr-2"
+                    onClick={() => onEditChange("start", Number(world.id))}
+                  >
+                    編集
+                  </button>
+                  <button className="btn btn-danger" onClick={onDelete}>
+                    削除
+                  </button>
+                </>
+              )}
             </div>
           </div>
         )}

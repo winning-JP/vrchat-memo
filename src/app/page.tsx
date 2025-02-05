@@ -19,6 +19,7 @@ export interface World {
   memo?: string;
   ogImage?: string;
   tags: Tag[];
+  published: boolean;
 }
 
 interface NewWorld {
@@ -28,6 +29,7 @@ interface NewWorld {
   memo: string;
   ogImage: string;
   tags: string[];
+  published: boolean;
 }
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -47,6 +49,7 @@ export default function Home() {
     memo: "",
     ogImage: "",
     tags: [],
+    published: false,
   });
 
   const [editing, setEditing] = useState<{ [id: number]: Partial<NewWorld> }>(
@@ -88,6 +91,7 @@ export default function Home() {
         memo: "",
         ogImage: "",
         tags: [],
+        published: false,
       });
     }
   };
@@ -267,6 +271,17 @@ export default function Home() {
                           }
                         />
                       </div>
+                      <div className="mb-3">
+                        <label className="form-label">公開する</label>
+                        <input
+                          type="checkbox"
+                          className="form-check-input"
+                          checked={newWorld.published}
+                          onChange={(e) =>
+                            setNewWorld({ ...newWorld, published: e.target.checked })
+                          }
+                        />
+                      </div>
                     </div>
                     <div className="modal-footer">
                       <button
@@ -400,6 +415,7 @@ export default function Home() {
                     memo: editing[world.id]?.memo || "",
                     ogImage: editing[world.id]?.ogImage || "",
                     tags: editing[world.id]?.tags || [],
+                    published: editing[world.id]?.published || false,
                   }}
                   onEditChange={(field, value) => {
                     if (field === "start") {
@@ -415,6 +431,7 @@ export default function Home() {
                             memo: targetWorld.memo || "",
                             ogImage: targetWorld.ogImage || "",
                             tags: targetWorld.tags.map((tag) => tag.name),
+                            published: targetWorld.published,
                           },
                         }));
                       }

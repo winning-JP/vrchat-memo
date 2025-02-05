@@ -68,4 +68,5 @@ model World {
   user        User    @relation(fields: [userId], references: [id])
   userId      String
   tags        Tag[]   @relation("WorldTags")
+  published   Boolean @default(false)
 }
