@@ -149,7 +149,7 @@ export default function Home() {
         </div>
       ) : !session ? (
         <div className="text-center">
-          <h1>VRChat ワールド備忘録</h1>
+          <h1>VRChat World Memory</h1>
           <p>サインインしてワールドを管理しよう</p>
           <button className="btn btn-primary" onClick={() => signIn()}>
             サインインする
@@ -157,7 +157,7 @@ export default function Home() {
         </div>
       ) : (
         <>
-          <h1 className="mb-4">VRChat ワールド備忘録</h1>
+          <h1 className="mb-4">VRChat World Memory</h1>
           <button className="btn btn-secondary mb-4" onClick={() => signOut()}>
             サインアウト
           </button>

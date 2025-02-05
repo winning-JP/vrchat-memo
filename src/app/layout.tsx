@@ -2,8 +2,8 @@ import Providers from "./providers";
 import Header from "./components/Header";
 
 export const metadata = {
-  title: "VRChat ワールド備忘録",
-  description: "VRChat のワールド備忘録アプリ",
+  title: "VRChat World Memory",
+  description: "VRChat World Memory",
 };
 
 export default function RootLayout({
