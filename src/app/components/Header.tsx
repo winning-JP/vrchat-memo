@@ -4,7 +4,7 @@ export default function Header() {
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
       <div className="container-fluid">
-        <Link className="navbar-brand" href="/">VRChat ワールド備忘録</Link>
+        <Link className="navbar-brand" href="/">VRChat World Memory</Link>
         <button
           className="navbar-toggler"
           type="button"
