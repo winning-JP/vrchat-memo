@@ -1,3 +1,4 @@
+import Script from "next/script";
 import Providers from "./providers";
 import Header from "./components/Header";
 
@@ -44,13 +45,11 @@ export default function RootLayout({
               }
           `}
         </style>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" 
-                integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" 
-                crossOrigin="anonymous"></script>
       </head>
       <body>
         <Header />
         <Providers>{children}</Providers>
+        <Script src="https://cdn.jsdelivr.net/npm/bootstrap/dist/js/bootstrap.bundle.min.js" />
       </body>
     </html>
   );
